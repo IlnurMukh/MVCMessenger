@@ -1,0 +1,159 @@
+﻿
+@* <div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div> *@
+@* <div class="d-flex flex-column flex-md-row p-4 gap-4 py-md-5 align-items-center justify-content-center">
+    <div class="list-group">
+        <a href="#" class="list-group-item list-group-item-action d-flex gap-3 py-3" aria-current="true">
+            <div class="d-flex gap-2 w-100 justify-content-between">
+                <div>
+                    <h6 class="mb-0">OneLove</h6>
+                    <p class="mb-0 opacity-75">Когда Боруто?</p>
+                </div>
+                <small class="opacity-50 text-nowrap">1</small>
+            </div>
+        </a>
+    </div>
+</div>
+ *@
+@using Microsoft.IdentityModel.Tokens
+@using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute
+@model MVCMessenger.ViewModels.MainViewModel
+
+@if (@Model.InterlocutorId.IsNullOrEmpty())
+{
+    ViewData["Title"] = "Main";
+}
+@if (!@Model.InterlocutorId.IsNullOrEmpty())
+{
+    ViewData["Title"] = $"Chat with {@Model.InterlocutorId}";
+}
+
+<style>
+    #list {
+        display: flex;
+        padding: 16px;
+        gap: 16px;
+        align-items: center;
+        justify-content: flex-start;
+        max-height: 600px;
+        max-width: 300px;
+        overflow-y: auto;
+        flex-direction: column;
+        display: flex;
+        padding: 10px;
+    }
+    .fixed-bottom {
+        position: fixed;
+        bottom: 50px;
+        z-index: 9999; 
+        left: 400px
+    }
+    
+    .messages-container {
+        max-width: 900px; 
+        margin: 20px auto;
+        display: flex;
+        flex-direction: column; 
+        overflow-y: auto;
+        max-height: 550px;
+    }
+
+    .message {
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 10px;
+        display: inline-block; 
+        max-width: 70%; 
+    }
+
+    .sent {
+        background-color: #f0f0f0; 
+        color: #000; 
+        align-self: flex-end; 
+        margin-left: auto
+    }
+
+    .received {
+        background-color: #1b6ec2; 
+        color: #fff; 
+        align-self: flex-start; 
+        margin-right: auto
+    }
+    .highlighted-column {
+        border: 2px solid #ff0000; 
+        border-radius: 10px; 
+        padding: 10px; 
+    }
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 order-md-1" style="width: 350px; height: 600px">
+            <form method="post" asp-action="Index" style="max-width: 300px">
+                <input asp-for="UserSearch" type="text" style="flex: 1; width: 75%; max-height: 25px"/>
+                <button type="submit"><img src="png/search (1).png"/></button>
+            </form>
+            <div class="d-flex flex-column align-items-start col" id="list">
+                <div class="list-group w-100">
+                    @if (!Model.Users.IsNullOrEmpty())
+                    {
+                        @foreach (var user in Model.Users)
+                        {
+                            
+                            <form asp-controller="Main" asp-action="OpenOrCreateChatWith" method="post">
+                                <input type="hidden" name="interlocutorId" value="@user.Id.ToString()"/>
+                                <button type="submit" class="list-group-item list-group-item-action d-flex gap-3 py-3" aria-current="true">
+                                    <div class="d-flex gap-2 w-100 justify-content-between">
+                                        <div>
+                                            <h6 class="mb-0">@user.Username</h6>
+                                            <p class="mb-0 opacity-75">Message</p>
+                                        </div>
+                                        <small class="opacity-50 text-nowrap">1</small>
+                                    </div>
+                                </button>
+                            </form>
+
+                        }
+                    }
+                </div>
+            </div>
+
+        </div>
+        @if (!Model.InterlocutorId.IsNullOrEmpty())
+        {
+            <div class="col-md-6 order-md-2" style="width: 900px; height: 600px">
+                <div class="messages-container" style="border-block-color: #258cfb">
+                    @foreach (var message in Model.MessagesWithUser)
+                    {
+                        if (message.Sender.ToString() == Model.InterlocutorId)
+                        {
+                            <div class="message received">
+                                <p>@message.MessageText</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="message sent">
+                                <p>@message.MessageText</p>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <form method="post" asp-action="SendMessage">
+                    <div class="input-group input-group-lg mb-3">
+                        <input asp-for="UserId" hidden="" value="@Model.UserId"/>
+                        <input asp-for="InterlocutorId" hidden="" value="@Model.InterlocutorId"/>
+                        <input asp-for="MessageText" type="text" class="form-control" placeholder="Type your message here..." aria-label="Message text" aria-describedby="button-send"/>
+                        <button class="btn btn-primary" type="submit" id="button-send">Send</button>
+                    </div>
+                </form>
+            </div>
+        }
+    </div>
+</div>
+    
+
+
